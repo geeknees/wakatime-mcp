@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+// ABOUTME: MCP server exposing WakaTime summary tools over stdio.
+// ABOUTME: Proxies tool calls to the WakaTime API using the API key env var.
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
