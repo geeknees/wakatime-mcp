@@ -7,7 +7,8 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { pathToFileURL } from "node:url";
+import { realpathSync } from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { z } from "zod";
 
 const SummariesInput = z.object({
@@ -71,6 +72,22 @@ export function todayYmd(tz = "Asia/Tokyo"): string {
   const d = parts.find((p) => p.type === "day")?.value;
   if (!y || !m || !d) throw new Error("today date formatting failed");
   return `${y}-${m}-${d}`;
+}
+
+export function shouldRunMain(importMetaUrl: string, argv1?: string): boolean {
+  if (!argv1) return false;
+
+  const argvUrl = pathToFileURL(argv1).href;
+  if (importMetaUrl === argvUrl) return true;
+
+  try {
+    const argvRealUrl = pathToFileURL(realpathSync(argv1)).href;
+    const importMetaRealPath = realpathSync(fileURLToPath(importMetaUrl));
+    const importMetaRealUrl = pathToFileURL(importMetaRealPath).href;
+    return importMetaRealUrl === argvRealUrl;
+  } catch {
+    return false;
+  }
 }
 
 async function main() {
@@ -148,12 +165,9 @@ async function main() {
   await server.connect(new StdioServerTransport());
 }
 
-if (process.argv[1]) {
-  const entryUrl = pathToFileURL(process.argv[1]).href;
-  if (import.meta.url === entryUrl) {
-    main().catch((err) => {
-      console.error(String(err?.stack ?? err));
-      process.exit(1);
-    });
-  }
+if (shouldRunMain(import.meta.url, process.argv[1])) {
+  main().catch((err) => {
+    console.error(String(err?.stack ?? err));
+    process.exit(1);
+  });
 }
