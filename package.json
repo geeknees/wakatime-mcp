@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsc -p ."
+    "build": "tsc -p . && node scripts/add-shebang.js",
+    "prepare": "npm run build",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +23,7 @@
   "devDependencies": {
     "@types/node": "^25.0.9",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

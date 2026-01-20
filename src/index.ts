@@ -7,6 +7,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { pathToFileURL } from "node:url";
 import { z } from "zod";
 
 const SummariesInput = z.object({
@@ -20,7 +21,7 @@ function toolText(text: string) {
   return [{ type: "text", text }];
 }
 
-function basicAuthHeaderFromApiKey(apiKey: string): string {
+export function basicAuthHeaderFromApiKey(apiKey: string): string {
   // WakaTime docs: Authorization: Basic <base64(api_key)> :contentReference[oaicite:4]{index=4}
   const b64 = Buffer.from(apiKey, "utf8").toString("base64");
   return `Basic ${b64}`;
@@ -56,7 +57,7 @@ async function wakatimeGet(
   return text; // JSON文字列のまま返す（利用側でパースしてもOK）
 }
 
-function todayYmd(tz = "Asia/Tokyo"): string {
+export function todayYmd(tz = "Asia/Tokyo"): string {
   // Node の Intl を使って TZ を考慮した YYYY-MM-DD を作る
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: tz,
@@ -147,7 +148,12 @@ async function main() {
   await server.connect(new StdioServerTransport());
 }
 
-main().catch((err) => {
-  console.error(String(err?.stack ?? err));
-  process.exit(1);
-});
+if (process.argv[1]) {
+  const entryUrl = pathToFileURL(process.argv[1]).href;
+  if (import.meta.url === entryUrl) {
+    main().catch((err) => {
+      console.error(String(err?.stack ?? err));
+      process.exit(1);
+    });
+  }
+}
